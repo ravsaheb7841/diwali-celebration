@@ -5,7 +5,6 @@
  * - The loop sleeps by itself when nothing is on screen (unless `auto` is on)
  */
 const TAU = Math.PI * 2
-const MAX_SPARKS = 1100
 const rand = (a, b) => a + Math.random() * (b - a)
 
 export const PALETTES = {
@@ -20,7 +19,12 @@ export class Fireworks {
     this.ctx = canvas.getContext('2d')
     this.palette = PALETTES[palette] || PALETTES.gold
     this.auto = auto
-    this.power = power
+    this.mobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768
+    this.lowPower = this.mobile && ((navigator.deviceMemory || 4) <= 2 || (navigator.hardwareConcurrency || 4) <= 4)
+    this.power = power * (this.lowPower ? 0.72 : this.mobile ? 0.86 : 1)
+    this.maxSparks = this.lowPower ? 420 : this.mobile ? 700 : 1100
+    this.frameInterval = this.lowPower ? 1000 / 30 : this.mobile ? 1000 / 45 : 0
+    this.lastPaint = 0
     this.rockets = []
     this.sparks = []
     this.flashes = []
@@ -92,9 +96,9 @@ export class Fireworks {
 
   /** Instant explosion at (x, y). */
   burst(x, y, colors = this.palette) {
-    if (this.sparks.length > MAX_SPARKS) return
+    if (this.sparks.length > this.maxSparks) return
     const small = this.w < 640
-    const count = Math.round(rand(70, 110) * this.power * (small ? 0.72 : 1))
+    const count = Math.round(rand(70, 110) * this.power * (small ? (this.lowPower ? 0.5 : 0.62) : 1))
     const speedMax = (small ? 200 : 270) * Math.sqrt(this.power)
     const base = colors[(Math.random() * colors.length) | 0]
     const alt = colors[(Math.random() * colors.length) | 0]
@@ -123,7 +127,7 @@ export class Fireworks {
 
   /** A choreographed multi-rocket finale. Returns its approximate duration in ms. */
   finale() {
-    const n = 16
+    const n = this.lowPower ? 10 : this.mobile ? 12 : 16
     for (let i = 0; i < n; i++) {
       const id = setTimeout(() => {
         this.launch(rand(0.1, 0.9) * this.w, rand(0.12, 0.5) * this.h)
@@ -136,6 +140,11 @@ export class Fireworks {
 
   loop(now) {
     if (this.paused) return
+    if (this.frameInterval && now - this.lastPaint < this.frameInterval) {
+      this.raf = requestAnimationFrame(this.loop)
+      return
+    }
+    this.lastPaint = now
     const dt = Math.min((now - this.last) / 1000, 0.05)
     this.last = now
     const { ctx, w, h } = this
@@ -156,7 +165,7 @@ export class Fireworks {
       r.py = r.y
       r.x = r.sx + (r.tx - r.sx) * e
       r.y = h + (r.ty - h) * e
-      if (this.sparks.length < MAX_SPARKS) {
+      if (this.sparks.length < this.maxSparks) {
         this.sparks.push({
           x: r.x,
           y: r.y,

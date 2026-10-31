@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { PartyPopper, MousePointerClick } from 'lucide-react'
 import { useFireworks } from '../lib/useFireworks.js'
+import { getDeviceProfile } from '../lib/device.js'
 import { Reveal, SectionHeading } from './Reveal.jsx'
 
 const PALETTE_OPTIONS = [
@@ -17,6 +18,7 @@ const SKYLINE = [
   [604, 66, 92, 'dome'], [670, 48, 64, 'box'], [718, 80, 100, 'temple'], [798, 50, 52, 'box'], [848, 62, 80, 'dome'],
   [910, 44, 60, 'box'], [954, 90, 116, 'temple'], [1044, 46, 54, 'box'], [1090, 62, 84, 'dome'], [1152, 48, 58, 'box'],
 ]
+const STAR_COUNT = getDeviceProfile().lowPower ? 20 : getDeviceProfile().mobile ? 28 : 36
 
 function Skyline() {
   const base = 160
@@ -100,8 +102,8 @@ export default function FireworksStage() {
         <Reveal delay={0.15} className="mt-14">
           <div className="relative h-[68svh] min-h-[420px] overflow-hidden rounded-[2rem] border border-gold-300/20 bg-[radial-gradient(ellipse_100%_80%_at_50%_100%,#3a1670_0%,#140b38_45%,#07030f_100%)] shadow-[0_30px_90px_-30px_rgba(255,140,30,0.35)] sm:h-[72svh]">
             {/* twinkling stars */}
-            <div className="pointer-events-none absolute inset-0 opacity-70" aria-hidden="true">
-              {Array.from({ length: 36 }).map((_, i) => (
+            <div className="fireworks-stars pointer-events-none absolute inset-0 opacity-70" aria-hidden="true">
+              {Array.from({ length: STAR_COUNT }).map((_, i) => (
                 <span
                   key={i}
                   className="animate-twinkle absolute block rounded-full bg-cream"

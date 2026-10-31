@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useReducedMotion } from 'framer-motion'
+import { getDeviceProfile } from '../lib/device.js'
 
 const TAU = Math.PI * 2
 
@@ -39,6 +40,8 @@ export default function Embers() {
     let parts = []
     let last = performance.now()
     let t = 0
+    let lastPaint = 0
+    const { mobile, lowPower, frameInterval } = getDeviceProfile()
 
     const spawn = (init) => {
       const z = 0.3 + Math.random() * 0.7
@@ -56,13 +59,15 @@ export default function Embers() {
     }
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.25)
+      const dpr = Math.min(window.devicePixelRatio || 1, lowPower ? 1 : 1.25)
       w = window.innerWidth
       h = window.innerHeight
       canvas.width = Math.round(w * dpr)
       canvas.height = Math.round(h * dpr)
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      const n = Math.round(Math.min(52, Math.max(20, w / 28)))
+      const max = lowPower ? 28 : mobile ? 38 : 52
+      const min = lowPower ? 14 : mobile ? 18 : 20
+      const n = Math.round(Math.min(max, Math.max(min, w / (lowPower ? 42 : 28))))
       parts = Array.from({ length: n }, () => spawn(true))
       if (reduce) draw(0)
     }
@@ -90,6 +95,11 @@ export default function Embers() {
         raf = 0
         return
       }
+      if (frameInterval && now - lastPaint < frameInterval) {
+        raf = requestAnimationFrame(loop)
+        return
+      }
+      lastPaint = now
       const dt = Math.min((now - last) / 1000, 0.05)
       last = now
       draw(dt)
