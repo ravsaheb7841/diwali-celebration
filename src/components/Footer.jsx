@@ -58,11 +58,9 @@ export default function Footer() {
         </p>
         <p className="mt-2 text-xs tracking-widest text-cream/30">© {DIWALI_YEAR} · Deepavali</p>
 
-        <Reveal delay={0.18} className="mt-7 flex flex-col items-center">
-          <p className="creator-credit text-sm tracking-[0.08em] text-gold-200/80">
-            Designed &amp; Developed by Ravsaheb Bansode
-          </p>
-        </Reveal>
+        <p className="creator-credit mt-7 text-sm tracking-[0.08em] text-gold-200">
+          Designed &amp; Developed by Ravsaheb Bansode
+        </p>
       </div>
     </footer>
   )
