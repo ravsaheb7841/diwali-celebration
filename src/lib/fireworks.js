@@ -46,7 +46,7 @@ export class Fireworks {
 
   resize() {
     const r = this.canvas.getBoundingClientRect()
-    this.dpr = Math.min(window.devicePixelRatio || 1, 2)
+    this.dpr = Math.min(window.devicePixelRatio || 1, 1.5)
     this.w = r.width
     this.h = r.height
     this.canvas.width = Math.max(1, Math.round(r.width * this.dpr))

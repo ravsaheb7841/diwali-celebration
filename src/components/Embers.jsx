@@ -56,13 +56,13 @@ export default function Embers() {
     }
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.25)
       w = window.innerWidth
       h = window.innerHeight
       canvas.width = Math.round(w * dpr)
       canvas.height = Math.round(h * dpr)
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      const n = Math.round(Math.min(70, Math.max(24, w / 22)))
+      const n = Math.round(Math.min(52, Math.max(20, w / 28)))
       parts = Array.from({ length: n }, () => spawn(true))
       if (reduce) draw(0)
     }
@@ -86,6 +86,10 @@ export default function Embers() {
     }
 
     const loop = (now) => {
+      if (document.hidden) {
+        raf = 0
+        return
+      }
       const dt = Math.min((now - last) / 1000, 0.05)
       last = now
       draw(dt)
@@ -93,12 +97,23 @@ export default function Embers() {
     }
 
     resize()
-    window.addEventListener('resize', resize)
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(raf)
+        raf = 0
+      } else if (!reduce && !raf) {
+        last = performance.now()
+        raf = requestAnimationFrame(loop)
+      }
+    }
+    window.addEventListener('resize', resize, { passive: true })
+    document.addEventListener('visibilitychange', onVisibilityChange)
     if (!reduce) raf = requestAnimationFrame(loop)
 
     return () => {
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
     }
   }, [reduce])
 
